@@ -1,0 +1,32 @@
+﻿# Gemma AML Assistant Dependencies
+
+# Core LLM
+torch>=2.0.0
+transformers>=4.40.0
+bitsandbytes>=0.41.0  # 4-bit量化
+kagglehub>=0.1.0  # Kaggle模型下载
+accelerate>=0.20.0
+
+# Ollama支持（可选）
+ollama>=0.1.0
+
+# RAG组件
+langchain>=0.1.0
+langchain-community>=0.0.10
+sentence-transformers>=2.2.0
+qdrant-client>=1.4.0
+
+# 文档解析
+pymupdf>=1.23.0  # PDF解析
+python-docx>=0.8.11  # Word解析
+
+# 前端
+streamlit>=1.28.0
+
+# PII检测（可选，用于Privacy模块）
+presidio-analyzer>=2.2.0
+presidio-anonymizer>=2.2.0
+
+# 工具库
+python-dotenv>=1.0.0
+pydantic>=2.0.0
