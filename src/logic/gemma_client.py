@@ -2,26 +2,15 @@
 
 import os
 from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
 from enum import Enum
+
+from ..data.models import GemmaResponse
 
 
 class BackendType(Enum):
     KAGGLE = "kaggle"
     OLLAMA = "ollama"
     HUGGINGFACE = "huggingface"
-
-
-@dataclass
-class GemmaResponse:
-    content: str
-    raw_response: str
-    thinking: Optional[str] = None
-    sources: List[Dict] = None
-    
-    def __post_init__(self):
-        if self.sources is None:
-            self.sources = []
 
 
 class GemmaClient:
@@ -155,7 +144,7 @@ class GemmaClient:
         tp = top_p or self.DEFAULT_TOP_P
         tk = top_k or self.DEFAULT_TOP_K
         
-        if self.backend == BackendType.KAGGLE or self.backend == BackendType.HUGGINGFACE:
+        if self.backend in (BackendType.KAGGLE, BackendType.HUGGINGFACE):
             return self._generate_transformers(
                 messages, enable_thinking, max_new_tokens, temp, tp, tk
             )
@@ -163,6 +152,23 @@ class GemmaClient:
             return self._generate_ollama(
                 messages, enable_thinking, max_new_tokens, temp
             )
+    
+    def analyze_with_thinking(
+        self,
+        query: str,
+        context: str = "",
+        enable_thinking: bool = True,
+    ) -> Dict[str, Any]:
+        """Analyze a query with thinking mode enabled. Returns a dict with answer and thinking."""
+        response = self.generate(
+            prompt=query,
+            context=context,
+            enable_thinking=enable_thinking,
+        )
+        return {
+            "answer": response.content,
+            "thinking": response.thinking,
+        }
     
     def _generate_transformers(
         self,
@@ -251,4 +257,4 @@ class GemmaClient:
         )
 
 
-__all__ = ['GemmaClient', 'GemmaResponse', 'BackendType']
+__all__ = ['GemmaClient', 'BackendType']

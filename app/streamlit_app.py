@@ -1,9 +1,7 @@
 """AML Compliance Assistant - Streamlit Frontend"""
 
 import streamlit as st
-import os
-import time
-from typing import Dict, Any, List, Optional
+from typing import Optional
 
 st.set_page_config(
     page_title="AML Compliance Assistant",
@@ -56,12 +54,12 @@ def init_gemma_client(backend: str):
 
 
 @st.cache_resource
-def init_retriever(storage_type: str):
+def init_pipeline(storage_type: str):
     try:
         from src.logic.rag_pipeline import RAGPipeline
         return RAGPipeline(storage_type=storage_type)
     except Exception as e:
-        st.error(f"Failed to init retriever: {e}")
+        st.error(f"Failed to init RAG pipeline: {e}")
         return None
 
 
@@ -71,7 +69,7 @@ def init_explainability(gemma_client):
         from src.logic.explainability import ExplainabilityEngine
         return ExplainabilityEngine(gemma_client)
     except Exception as e:
-        st.error(f"Failed to init explainability: {e}")
+        st.error(f"Failed to init explainability engine: {e}")
         return None
 
 
@@ -95,45 +93,47 @@ with tab1:
     
     if submit_btn and question:
         client = init_gemma_client(backend)
-        retriever = init_retriever(storage_type)
+        pipeline = init_pipeline(storage_type)
         
-        if client and retriever:
+        if client and pipeline:
             with st.spinner("Searching..."):
                 try:
-                    from src.logic.rag_pipeline import RAGPipeline
+                    # Step 1: Retrieve relevant documents
+                    search_results = pipeline.retrieve(question, top_k=top_k)
                     
-                    pipeline = RAGPipeline(
-                        gemma_client=client,
-                        retriever=retriever,
-                        top_k=top_k,
-                        enable_thinking=enable_thinking,
-                    )
-                    
-                    result = pipeline.query(question)
-                    st.session_state.query_count += 1
-                    
-                    st.markdown("---")
-                    
-                    if enable_thinking and result.get("thinking"):
-                        with st.expander("Thinking Process", expanded=True):
-                            st.markdown(result["thinking"])
-                    
-                    st.subheader("Answer")
-                    st.markdown(result["answer"])
-                    
-                    if result.get("sources"):
-                        st.subheader("Sources")
-                        for i, source in enumerate(result["sources"][:3]):
-                            st.markdown(f"**[{i+1}] {source.get('source', 'Unknown')}**")
-                            excerpt = source.get('excerpt', source.get('content', ''))
-                            if excerpt:
-                                st.markdown(f"> {excerpt[:200]}...")
-                            if source.get('score'):
-                                st.caption(f"Relevance: {source['score']:.2f}")
-                    
-                    if result.get("confidence"):
-                        confidence = result["confidence"]
+                    if not search_results:
+                        st.warning("No relevant documents found. Please upload documents first.")
+                    else:
+                        # Step 2: Use explainability engine for answer
+                        engine = init_explainability(client)
+                        result = engine.analyze_with_sources(
+                            query=question,
+                            search_results=search_results,
+                            enable_thinking=enable_thinking,
+                        )
+                        st.session_state.query_count += 1
+                        
+                        st.markdown("---")
+                        
+                        if enable_thinking and result.thinking:
+                            with st.expander("Thinking Process", expanded=True):
+                                st.markdown(result.thinking)
+                        
+                        st.subheader("Answer")
+                        st.markdown(result.answer)
+                        
+                        if result.sources:
+                            st.subheader("Sources")
+                            for i, source in enumerate(result.sources[:3]):
+                                st.markdown(f"**[{i+1}] {source.get('source', 'Unknown')}**")
+                                excerpt = source.get('excerpt', '')
+                                if excerpt:
+                                    st.markdown(f"> {excerpt[:200]}...")
+                                if source.get('score'):
+                                    st.caption(f"Relevance: {source['score']:.2f}")
+                        
                         st.subheader("Confidence")
+                        confidence = result.confidence
                         st.progress(confidence)
                         
                         if confidence >= 0.7:
@@ -183,9 +183,9 @@ with tab2:
         process_btn = st.button("Process", type="primary")
         
         if process_btn:
-            retriever = init_retriever(storage_type)
+            pipeline = init_pipeline(storage_type)
             
-            if retriever:
+            if pipeline:
                 with st.spinner("Processing..."):
                     try:
                         from src.data.models import Document
@@ -216,19 +216,14 @@ with tab2:
                             else:
                                 text = f"[Unknown: {file.name}]"
                             
-                            chunk_size = 500
-                            for i in range(0, len(text), chunk_size):
-                                chunk = text[i:i + chunk_size]
-                                if chunk.strip():
-                                    documents.append(
-                                        Document(
-                                            content=chunk,
-                                            source=file.name,
-                                            metadata={"chunk_index": i // chunk_size},
-                                        )
-                                    )
+                            documents.append(
+                                Document(
+                                    content=text,
+                                    source=file.name,
+                                )
+                            )
                         
-                        count = retriever.add_documents(documents)
+                        count = pipeline.add_documents(documents)
                         st.session_state.doc_count += len(uploaded_files)
                         
                         st.success(f"Processed {len(uploaded_files)} files, {count} chunks")
@@ -239,18 +234,18 @@ with tab2:
     st.markdown("---")
     st.subheader("Current Collection")
     
-    retriever = init_retriever(storage_type)
-    if retriever:
+    pipeline = init_pipeline(storage_type)
+    if pipeline:
         try:
-            info = retriever.get_collection_info()
+            info = pipeline.get_collection_info()
             st.json(info)
         except Exception:
             st.info("Collection empty")
     
     if st.button("Clear Collection"):
-        retriever = init_retriever(storage_type)
-        if retriever:
-            retriever.delete_collection()
+        pipeline = init_pipeline(storage_type)
+        if pipeline:
+            pipeline.delete_collection()
             st.session_state.doc_count = 0
             st.success("Cleared")
             st.rerun()
@@ -269,16 +264,14 @@ with tab3:
     else:
         st.warning("Not initialized")
     
-    st.subheader("Retriever")
-    retriever = init_retriever(storage_type)
-    if retriever:
+    st.subheader("RAG Pipeline")
+    pipeline = init_pipeline(storage_type)
+    if pipeline:
         try:
-            info = retriever.get_collection_info()
+            info = pipeline.get_collection_info()
             st.json(info)
         except Exception:
-            st.json({
-                "storage_type": retriever.storage_type.value,
-            })
+            st.json({"storage_type": pipeline.storage_type})
     else:
         st.warning("Not initialized")
     

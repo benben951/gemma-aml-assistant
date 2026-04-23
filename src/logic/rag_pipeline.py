@@ -1,28 +1,12 @@
 """RAG pipeline with Qdrant"""
 
 import os
+import logging
 from typing import Optional, Dict, Any, List, Union, Callable
-from dataclasses import dataclass, field
-from enum import Enum
-import uuid
 
+from ..data.models import Document, SearchResult
 
-class StorageType(Enum):
-    MEMORY = "memory"
-    QDRANT_LOCAL = "qdrant_local"
-    QDRANT_CLOUD = "qdrant_cloud"
-
-
-@dataclass
-class Document:
-    content: str
-    source: str = "unknown"
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    doc_id: Optional[str] = None
-    
-    def __post_init__(self):
-        if self.doc_id is None:
-            self.doc_id = str(uuid.uuid4())
+logger = logging.getLogger(__name__)
 
 
 class EmbeddingAdapter:
@@ -49,6 +33,11 @@ class EmbeddingAdapter:
             self._model = SentenceTransformer(self.model_name)
             self._dimension = self._model.get_sentence_embedding_dimension()
         except ImportError:
+            logger.warning(
+                "sentence_transformers not available. "
+                "Embeddings will be zero vectors. "
+                "Install with: pip install sentence-transformers"
+            )
             self._dimension = self.DEFAULT_DIMENSION
     
     def embed(self, texts: List[str]) -> List[List[float]]:
@@ -59,8 +48,9 @@ class EmbeddingAdapter:
             embeddings = self._model.encode(texts)
             return embeddings.tolist()
         
-        import random
-        return [[random.random() for _ in range(self._dimension)] for _ in texts]
+        # Fallback: return zero vectors instead of random vectors
+        # Random vectors would produce meaningless similarity scores
+        return [[0.0 for _ in range(self._dimension)] for _ in texts]
     
     def dimension(self) -> int:
         return self._dimension
@@ -80,7 +70,7 @@ class RAGPipeline:
         chunk_size: int = 500,
         chunk_overlap: int = 50,
     ):
-        self.storage_type = StorageType(storage_type.lower())
+        self.storage_type = storage_type.lower()
         self.collection_name = collection_name
         self.top_k = top_k
         self.chunk_size = chunk_size
@@ -91,19 +81,19 @@ class RAGPipeline:
             embedding_func=embedding_func,
         )
         
+        self._client = None
         self._init_qdrant(persist_path, qdrant_url, qdrant_api_key)
     
     def _init_qdrant(self, persist_path, qdrant_url, qdrant_api_key):
         try:
             from qdrant_client import QdrantClient
-            from qdrant_client.http import models
             
-            if self.storage_type == StorageType.MEMORY:
+            if self.storage_type == "memory":
                 self._client = QdrantClient(location=":memory:")
-            elif self.storage_type == StorageType.QDRANT_LOCAL:
+            elif self.storage_type == "qdrant_local":
                 path = persist_path or "./qdrant_data"
                 self._client = QdrantClient(path=path)
-            elif self.storage_type == StorageType.QDRANT_CLOUD:
+            elif self.storage_type == "qdrant_cloud":
                 if qdrant_url is None:
                     qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
                 self._client = QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
@@ -111,6 +101,10 @@ class RAGPipeline:
             self._ensure_collection()
             
         except ImportError:
+            logger.warning(
+                "qdrant_client not available. RAG pipeline will not function. "
+                "Install with: pip install qdrant-client"
+            )
             self._client = None
     
     def _ensure_collection(self):
@@ -133,7 +127,6 @@ class RAGPipeline:
             return 0
         
         chunks = []
-        chunk_metadata = []
         
         for doc in documents:
             doc_chunks = self._chunk_text(doc.content, doc.source, doc.metadata)
@@ -184,7 +177,7 @@ class RAGPipeline:
         
         return chunks
     
-    def retrieve(self, query: str, top_k: int = None) -> List:
+    def retrieve(self, query: str, top_k: int = None) -> List[SearchResult]:
         if not self._client:
             return []
         
@@ -197,8 +190,6 @@ class RAGPipeline:
             query_vector=query_vector,
             limit=k,
         )
-        
-        from ..data.models import SearchResult
         
         search_results = []
         for r in results:
@@ -225,11 +216,12 @@ class RAGPipeline:
             info = self._client.get_collection(self.collection_name)
             return {
                 "status": "ready",
+                "name": self.collection_name,
                 "points_count": info.points_count,
                 "vectors_count": info.vectors_count,
             }
         except Exception:
-            return {"status": "empty"}
+            return {"status": "empty", "name": self.collection_name}
     
     def delete_collection(self):
         if self._client:
@@ -239,4 +231,4 @@ class RAGPipeline:
                 pass
 
 
-__all__ = ['RAGPipeline', 'Document', 'StorageType']
+__all__ = ['RAGPipeline', 'EmbeddingAdapter']
