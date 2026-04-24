@@ -1,7 +1,8 @@
 """基本功能测试"""
 
 import sys
-sys.path.insert(0, "src")
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from src.logic.rag_pipeline import RAGPipeline, Document
 

@@ -24,23 +24,13 @@
 
 ## 🚀 快速开始
 
-### Kaggle Notebook 运行
+### Docker 一键部署（推荐）
 
-```python
-import kagglehub
-from src.core.gemma_client import GemmaClient
+```bash
+# 启动 Qdrant + Streamlit
+docker compose up -d
 
-# 初始化客户端（自动下载模型）
-client = GemmaClient(backend="kaggle")
-
-# 启用Thinking模式进行合规分析
-response = client.generate(
-    "什么是AML尽职调查？",
-    enable_thinking=True
-)
-
-print(response.thinking)  # 推理过程
-print(response.content)   # 最终回答
+# 访问 http://localhost:8501
 ```
 
 ### Ollama 本地部署
@@ -51,16 +41,25 @@ curl -fsSL https://ollama.com/install.sh | sh
 
 # 下载Gemma 4
 ollama pull gemma4:26b-a4b
-
-# 运行
-ollama run gemma4:26b-a4b
 ```
 
 ```python
-from src.core.gemma_client import GemmaClient
+from src.logic.gemma_client import GemmaClient
 
 client = GemmaClient(backend="ollama")
-response = client.generate("什么是AML尽职调查？")
+response = client.generate("什么是AML尽职调查？", enable_thinking=True)
+
+print(response.thinking)  # 推理过程
+print(response.content)   # 最终回答
+```
+
+### Kaggle Notebook 运行
+
+```python
+from src.logic.gemma_client import GemmaClient
+
+client = GemmaClient(backend="kaggle")
+response = client.generate("什么是AML尽职调查？", enable_thinking=True)
 ```
 
 ---
@@ -70,27 +69,37 @@ response = client.generate("什么是AML尽职调查？")
 ```
 gemma-aml-assistant/
 ├── src/
-│   ├── core/
-│   │   └── gemma_client.py      # Gemma 4 推理客户端
-│   ├── rag/
-│   │   ├── retriever.py         # 检索模块
-│   │   └── pipeline.py          # RAG完整流程
-│   ├── safety/
-│   │   └── explainability.py    # 可解释性引擎
-│   └── api/
-│       └── routes.py            # API路由
+│   ├── data/
+│   │   ├── config.py            # 配置管理
+│   │   ├── models.py            # 统一数据模型 (Document, SearchResult, GemmaResponse)
+│   │   └── vector_store.py      # 向量数据库封装 (Qdrant)
+│   ├── logic/
+│   │   ├── gemma_client.py      # Gemma 4 推理客户端 (Kaggle/Ollama/HuggingFace)
+│   │   ├── rag_pipeline.py      # RAG 流水线 (Embedding + Qdrant + Retrieve)
+│   │   ├── qa_service.py        # QA 编排服务 (Retrieve → Generate → Explain)
+│   │   └── explainability.py    # 可解释性引擎 (置信度 + 引用 + 推理链)
+│   └── ui/
+│       └── response_formatter.py # 响应格式化
 │
 ├── app/
-│   └── streamlit_app.py         # 前端界面
+│   └── streamlit_app.py         # Streamlit 前端
 │
-├── docs/
-│   └── aml_regulations/         # AML法规文档
+├── data/eval/
+│   └── aml_eval.jsonl           # AML/DD 评测数据集 (25题)
 │
-├── notebooks/
-│   └── demo.ipynb               # Kaggle演示
+├── tests/
+│   ├── test_gemma.py            # GemmaClient 单元测试
+│   ├── test_basic.py            # RAG 流水线基本测试
+│   └── test_quick.py            # 数据结构快速测试
 │
-└── tests/
-    └── test_gemma.py            # 集成测试
+├── .github/workflows/ci.yml    # GitHub Actions CI
+├── docker-compose.yml           # Docker Compose 一键部署
+├── Dockerfile.streamlit         # Streamlit 容器
+├── pyproject.toml               # 项目配置 + mypy/ruff/pytest
+├── pyrightconfig.json           # 类型检查配置
+├── requirements.txt             # Python 依赖
+├── LICENSE                      # MIT License
+└── README.md
 ```
 
 ---
@@ -103,7 +112,27 @@ gemma-aml-assistant/
 | **推理框架** | transformers + bitsandbytes | 4-bit量化 |
 | **备选框架** | Ollama | 本地部署 |
 | **向量数据库** | Qdrant | 高效检索 |
+| **Embedding** | sentence-transformers | all-MiniLM-L6-v2 |
 | **前端** | Streamlit | 快速原型 |
+
+---
+
+## 🧪 测试与评测
+
+```bash
+# 运行单元测试
+pip install -e ".[dev]"
+pytest tests/ -v
+
+# Lint
+ruff check src app
+
+# 类型检查
+pyright src app
+
+# 评测 RAG 效果（需要 Qdrant + Ollama）
+python -m data.eval.aml_eval
+```
 
 ---
 
@@ -128,7 +157,7 @@ gemma-aml-assistant/
 
 ## 📜 License
 
-CC-BY 4.0 (Hackathon要求)
+MIT License
 
 ---
 
