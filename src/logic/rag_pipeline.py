@@ -1,4 +1,4 @@
-"""RAG pipeline with Qdrant"""
+﻿"""RAG pipeline with Qdrant"""
 
 import os
 import logging
@@ -231,4 +231,4 @@ class RAGPipeline:
                 pass
 
 
-__all__ = ['RAGPipeline', 'EmbeddingAdapter']
+__all__ = ['RAGPipeline', 'EmbeddingAdapter', 'Document', 'SearchResult']
