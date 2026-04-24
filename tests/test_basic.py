@@ -4,7 +4,8 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.logic.rag_pipeline import RAGPipeline, Document
+from src.logic.rag_pipeline import RAGPipeline
+from src.data.models import Document
 
 
 def test_retriever():
