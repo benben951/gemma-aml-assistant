@@ -166,3 +166,4 @@ MIT License
 - Google DeepMind for Gemma 4
 - Kaggle for free GPU resources
 - LangChain for RAG framework
+- Luohe High School Yuhan Zhang
