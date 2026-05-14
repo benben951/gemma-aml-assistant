@@ -11,6 +11,8 @@ This repository is positioned as an AML / due diligence RAG evaluation project f
 - Portfolio angle: LLM application engineering for AML, KYC, and due diligence workflows.
 - Evaluation focus: grounding, citation accuracy, risk-point coverage, uncertainty handling, and analyst actionability.
 - More details: [Evaluation Notes](docs/EVALUATION.md)
+- Demo artifact: [Public-Safe Due Diligence Report](docs/DEMO_REPORT.md)
+- Roadmap: [Portfolio Roadmap](docs/PROJECT_ROADMAP.md)
 
 ## 馃幆 椤圭洰瀹氫綅
 
@@ -121,6 +123,9 @@ ruff check src app
 # 绫诲瀷妫€鏌?pyright src app
 
 # 璇勬祴 RAG 鏁堟灉锛堥渶瑕?Qdrant + Ollama锛?python -m data.eval.aml_eval
+
+# 鏍￠獙鍏紑灏借皟璇勬祴闆嗭紝骞跺湪鍖呭惈 model_output 瀛楁鏃惰绠楅€忔槑鎸囨爣
+python scripts/evaluate_due_diligence.py --cases data/eval/due_diligence_eval.jsonl
 ```
 
 ---
