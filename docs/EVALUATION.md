@@ -20,6 +20,18 @@ The evaluation set should cover four dimensions:
 - Current role: smoke and demonstration set.
 - Next target: expand to 100-200 synthetic but realistic cases across entity due diligence, transaction review, sanctions screening, adverse media, and beneficial ownership.
 
+Public files:
+
+- `data/eval/aml_eval.jsonl`: knowledge-oriented AML QA cases.
+- `data/eval/due_diligence_eval.jsonl`: synthetic case-review examples for risk-point recall and escalation behavior.
+- `scripts/evaluate_due_diligence.py`: transparent JSONL validator and lightweight scorer.
+
+Quick check:
+
+```bash
+python scripts/evaluate_due_diligence.py --cases data/eval/due_diligence_eval.jsonl
+```
+
 ## Bad-Case Taxonomy
 
 When reviewing outputs, classify failures into:
