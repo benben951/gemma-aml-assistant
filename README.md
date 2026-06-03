@@ -8,7 +8,7 @@ This repository is positioned as an AML and due diligence RAG evaluation project
 
 - Portfolio angle: AI application engineering for AML, KYC, and due diligence workflows
 - Evaluation focus: grounding, citation accuracy, risk-point coverage, uncertainty handling, and analyst actionability
-- Supporting docs: [docs/EVALUATION.md](docs/EVALUATION.md), [docs/DEMO_REPORT.md](docs/DEMO_REPORT.md), [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)
+- Supporting docs: [docs/EVALUATION.md](docs/EVALUATION.md), [docs/GOVERNANCE_CHECKLIST.md](docs/GOVERNANCE_CHECKLIST.md), [docs/DEMO_REPORT.md](docs/DEMO_REPORT.md), [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)
 
 ## Why This Project Exists
 
@@ -26,7 +26,7 @@ This project explores that design space with Gemma 4 as the local reasoning mode
 - Runs a local RAG workflow for AML and due diligence questions
 - Uses retrieval plus citation-aware generation instead of free-form answer synthesis
 - Adds explainability signals such as confidence and supporting evidence
-- Includes evaluation cases for answer grounding and coverage, not only a demo UI
+- Includes evaluation cases for answer grounding, coverage, escalation behavior, and unsafe certainty checks
 
 ## System Components
 
@@ -52,6 +52,13 @@ ollama pull gemma4:26b-a4b
 
 Then run the app or evaluation scripts from the repo.
 
+## Verification
+
+```bash
+python -m pytest -q
+python scripts/evaluate_due_diligence.py --cases data/eval/due_diligence_eval.jsonl
+```
+
 ## Project Structure
 
 ```text
@@ -64,4 +71,4 @@ docs/             evaluation notes, demo report, roadmap
 
 ## Resume Angle
 
-Built an offline AML and due diligence assistant with local Gemma inference, Qdrant-backed retrieval, citation-aware responses, and evaluation cases for grounding, coverage, and hallucination risk in regulated workflows.
+Built an offline AML and due diligence assistant with local Gemma inference, Qdrant-backed retrieval, citation-aware responses, and evaluation cases for grounding, risk-point coverage, escalation behavior, and unsafe-certainty detection in regulated workflows.

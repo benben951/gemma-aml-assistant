@@ -44,7 +44,6 @@ def test_retriever():
     print(f"Collection info: {info}")
 
     print("测试完成!")
-    return True
 
 
 if __name__ == "__main__":
