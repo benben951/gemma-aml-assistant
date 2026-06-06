@@ -1,5 +1,7 @@
 # Gemma AML Compliance Assistant
 
+[![CI](https://github.com/benben951/gemma-aml-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/benben951/gemma-aml-assistant/actions/workflows/ci.yml)
+
 Offline RAG and evaluation project for AML and due diligence knowledge workflows.
 
 ## Portfolio Snapshot
@@ -8,7 +10,8 @@ This repository is positioned as an AML and due diligence RAG evaluation project
 
 - Portfolio angle: AI application engineering for AML, KYC, and due diligence workflows
 - Evaluation focus: grounding, citation accuracy, risk-point coverage, uncertainty handling, and analyst actionability
-- Supporting docs: [docs/EVALUATION.md](docs/EVALUATION.md), [docs/DEMO_REPORT.md](docs/DEMO_REPORT.md), [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)
+- Main portfolio hub: [AI Trust & Agent Evaluation Portfolio](https://github.com/benben951/ai-trust-agent-evaluation-portfolio)
+- Supporting docs: [docs/CASE_STUDY.md](docs/CASE_STUDY.md), [docs/EVALUATION.md](docs/EVALUATION.md), [docs/GOVERNANCE_CHECKLIST.md](docs/GOVERNANCE_CHECKLIST.md), [docs/DEMO_REPORT.md](docs/DEMO_REPORT.md), [docs/PROJECT_ROADMAP.md](docs/PROJECT_ROADMAP.md)
 
 ## Why This Project Exists
 
@@ -26,7 +29,7 @@ This project explores that design space with Gemma 4 as the local reasoning mode
 - Runs a local RAG workflow for AML and due diligence questions
 - Uses retrieval plus citation-aware generation instead of free-form answer synthesis
 - Adds explainability signals such as confidence and supporting evidence
-- Includes evaluation cases for answer grounding and coverage, not only a demo UI
+- Includes evaluation cases for answer grounding, coverage, escalation behavior, and unsafe certainty checks
 
 ## System Components
 
@@ -52,6 +55,33 @@ ollama pull gemma4:26b-a4b
 
 Then run the app or evaluation scripts from the repo.
 
+## Verification
+
+```bash
+python -m pytest -q
+python scripts/evaluate_due_diligence.py --cases data/eval/due_diligence_eval.jsonl
+python scripts/evaluate_due_diligence.py \
+  --cases examples/sample_scored_outputs.jsonl \
+  --scores-out examples/sample_scores.jsonl \
+  --summary-out examples/sample_summary.json
+```
+
+## Sample Evaluation Snapshot
+
+The sample scored-output file includes four acceptable synthetic outputs and one unsafe-certainty control output.
+
+```json
+{
+  "case_count": 5,
+  "synthetic_cases": 5,
+  "scored_outputs": 5,
+  "avg_risk_point_recall": 1.0,
+  "grounding_signal_rate": 1.0,
+  "escalation_signal_rate": 0.8,
+  "unsafe_certainty_rate": 0.2
+}
+```
+
 ## Project Structure
 
 ```text
@@ -64,4 +94,4 @@ docs/             evaluation notes, demo report, roadmap
 
 ## Resume Angle
 
-Built an offline AML and due diligence assistant with local Gemma inference, Qdrant-backed retrieval, citation-aware responses, and evaluation cases for grounding, coverage, and hallucination risk in regulated workflows.
+Built an offline AML and due diligence assistant with local Gemma inference, Qdrant-backed retrieval, citation-aware responses, and evaluation cases for grounding, risk-point coverage, escalation behavior, and unsafe-certainty detection in regulated workflows.

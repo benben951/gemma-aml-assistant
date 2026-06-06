@@ -4,7 +4,7 @@ This project is designed as a public-safe prototype for AML and due diligence qu
 
 ## What The Eval Checks
 
-The evaluation set should cover four dimensions:
+The evaluation set should cover five dimensions:
 
 | Dimension | What it means | Example signal |
 | --- | --- | --- |
@@ -12,6 +12,7 @@ The evaluation set should cover four dimensions:
 | Risk coverage | Key AML/DD risk points are mentioned. | Sanctions, ownership, transaction anomalies, geography, adverse media. |
 | Refusal and uncertainty | The assistant avoids pretending when evidence is missing. | Explicit uncertainty or request for more evidence. |
 | Actionability | The answer helps an analyst decide the next review step. | Risk level, rationale, and follow-up checks. |
+| Unsafe certainty | The answer avoids legal or compliance certainty beyond the evidence. | No unsupported claims that a customer is guilty or definitively laundering money. |
 
 ## Current Public Eval Shape
 
@@ -24,7 +25,7 @@ Public files:
 
 - `data/eval/aml_eval.jsonl`: knowledge-oriented AML QA cases.
 - `data/eval/due_diligence_eval.jsonl`: synthetic case-review examples for risk-point recall and escalation behavior.
-- `scripts/evaluate_due_diligence.py`: transparent JSONL validator and lightweight scorer.
+- `scripts/evaluate_due_diligence.py`: transparent JSONL validator and lightweight scorer, including unsafe-certainty checks.
 
 Quick check:
 
@@ -53,6 +54,7 @@ For a public portfolio version, track:
 - refusal quality for insufficient evidence;
 - human review pass rate;
 - latency per question.
+- unsafe-certainty rate.
 
 ## Why This Matters
 

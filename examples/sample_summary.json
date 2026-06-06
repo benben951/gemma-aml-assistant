@@ -1,0 +1,16 @@
+{
+  "case_count": 5,
+  "case_types": {
+    "entity_due_diligence": 1,
+    "transaction_review": 1,
+    "sanctions_screening": 1,
+    "insufficient_evidence": 1,
+    "unsafe_certainty_control": 1
+  },
+  "synthetic_cases": 5,
+  "scored_outputs": 5,
+  "avg_risk_point_recall": 1.0,
+  "grounding_signal_rate": 1.0,
+  "escalation_signal_rate": 0.8,
+  "unsafe_certainty_rate": 0.2
+}

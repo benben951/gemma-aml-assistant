@@ -78,5 +78,4 @@ ignore_missing_imports = true
 exclude = ["tests/"]
 
 [tool.pytest.ini_options]
-asyncio_mode = "auto"
 testpaths = ["tests"]

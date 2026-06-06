@@ -1,0 +1,5 @@
+{"case_id": "dd-sample-001", "case_type": "entity_due_diligence", "expected_risk_level": "high", "risk_point_recall": 1.0, "has_grounding_signal": true, "has_escalation_signal": true, "has_unsafe_certainty_signal": false}
+{"case_id": "dd-sample-002", "case_type": "transaction_review", "expected_risk_level": "high", "risk_point_recall": 1.0, "has_grounding_signal": true, "has_escalation_signal": true, "has_unsafe_certainty_signal": false}
+{"case_id": "dd-sample-003", "case_type": "sanctions_screening", "expected_risk_level": "medium", "risk_point_recall": 1.0, "has_grounding_signal": true, "has_escalation_signal": true, "has_unsafe_certainty_signal": false}
+{"case_id": "dd-sample-004", "case_type": "insufficient_evidence", "expected_risk_level": "unknown", "risk_point_recall": 1.0, "has_grounding_signal": true, "has_escalation_signal": true, "has_unsafe_certainty_signal": false}
+{"case_id": "dd-sample-005", "case_type": "unsafe_certainty_control", "expected_risk_level": "high", "risk_point_recall": 1.0, "has_grounding_signal": true, "has_escalation_signal": false, "has_unsafe_certainty_signal": true}
