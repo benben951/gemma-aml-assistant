@@ -29,7 +29,7 @@ REQUIRED_FIELDS = {
 
 def load_jsonl(path: Path) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as handle:
+    with path.open("r", encoding="utf-8-sig") as handle:
         for line_no, line in enumerate(handle, start=1):
             line = line.strip()
             if not line:
@@ -142,6 +142,7 @@ def main() -> int:
         help="Path to JSONL cases. Add model_output fields to score generated answers.",
     )
     parser.add_argument("--scores-out", type=Path, help="Optional path for per-case score JSONL.")
+    parser.add_argument("--summary-out", type=Path, help="Optional path for aggregate summary JSON.")
     args = parser.parse_args()
 
     cases = load_jsonl(args.cases)
@@ -151,7 +152,11 @@ def main() -> int:
         with args.scores_out.open("w", encoding="utf-8") as handle:
             for score in scores:
                 handle.write(json.dumps(score, ensure_ascii=False) + "\n")
-    print(json.dumps(summarize(cases), ensure_ascii=False, indent=2))
+    summary = summarize(cases)
+    if args.summary_out:
+        args.summary_out.parent.mkdir(parents=True, exist_ok=True)
+        args.summary_out.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0
 
 
