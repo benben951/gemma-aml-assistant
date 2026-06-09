@@ -4,6 +4,35 @@
 
 Offline RAG and evaluation project for AML and due diligence knowledge workflows.
 
+Gemma AML Compliance Assistant is a local-first RAG and evaluation prototype for regulated financial workflows. It focuses less on "chat with documents" and more on grounded answers, citation signals, uncertainty, escalation behavior, and reviewability.
+
+## What You Can Do With It
+
+- Run AML and due-diligence style evaluation cases with public-safe synthetic data.
+- Score model outputs for risk-point coverage, grounding signals, escalation signals, and unsafe certainty.
+- Explore a local RAG architecture with Gemma-style local inference and Qdrant-backed retrieval.
+- Review governance notes for human-in-the-loop use in regulated settings.
+- Use the repo as a compact template for risk-tech GenAI application packaging.
+
+## 60-Second Evaluation Quickstart
+
+```powershell
+git clone https://github.com/benben951/gemma-aml-assistant.git
+cd gemma-aml-assistant
+python -m pip install -r requirements.txt
+
+python scripts/evaluate_due_diligence.py `
+  --cases examples/sample_scored_outputs.jsonl `
+  --scores-out examples/sample_scores.jsonl `
+  --summary-out examples/sample_summary.json
+```
+
+Then open [examples/sample_summary.json](examples/sample_summary.json) and [docs/DEMO_REPORT.md](docs/DEMO_REPORT.md) to inspect the evaluation shape.
+
+## Why Star This Repo
+
+Star it if you are interested in AML/KYC GenAI, local RAG, regulated-domain assistants, or evaluation patterns that include grounding, escalation, and unsafe-certainty checks instead of only answer fluency.
+
 ## Portfolio Snapshot
 
 This repository is positioned as an AML and due diligence RAG evaluation project for regulated financial workflows. It demonstrates local LLM deployment, retrieval grounding, citation-aware responses, and an evaluation layer for hallucination and risk-coverage review.
