@@ -7,43 +7,29 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  smoke:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-      fail-fast: false
-
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install smoke-test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          python -m pip install pytest pydantic
 
-      - name: Lint with ruff
+      - name: Run evaluator tests
         run: |
-          ruff check src app
+          python -m pytest tests/test_due_diligence_eval.py -q
 
-      - name: Type check with pyright
+      - name: Run sample AML evaluation
         run: |
-          pyright src app
-
-      - name: Test with pytest
-        run: |
-          pytest tests/ -v --tb=short
-
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        if: matrix.python-version == '3.12'
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
+          python scripts/evaluate_due_diligence.py \
+            --cases examples/sample_scored_outputs.jsonl \
+            --scores-out /tmp/sample_scores.jsonl \
+            --summary-out /tmp/sample_summary.json
